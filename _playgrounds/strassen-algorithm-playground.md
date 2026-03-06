@@ -1,6 +1,5 @@
 ---
 layout: playgrounds
-permalink: /strassen-algorithm-playground/
 custom_js:
   - strassen-algo
 ---

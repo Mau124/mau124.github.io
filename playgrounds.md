@@ -4,4 +4,4 @@ title: "Playgrounds"
 permalink: /playgrounds/
 ---
 
-* [**Strassen's Algorithm**](/strassen-algorithm-playground/)
+* [**Strassen's Algorithm**](/playgrounds/strassen-algorithm-playground/)
