@@ -1,0 +1,108 @@
+---
+layout: default
+---
+<style>
+  .post-wrapper { display: flex; gap: 20px; max-width: 95%; margin: 0 auto; }
+  .sidebar-nav { flex: 0 0 240px; position: sticky; top: 40px; height: fit-content; max-height: 80vh; overflow-y: auto; }
+  .main-post-content { flex: 1; min-width: 0; }
+  
+  /* TOC Indentation & Styling */
+  #sidebar-toc-target ul { list-style: none; padding-left: 0; margin: 0; }
+  #sidebar-toc-target li { margin: 5px 0; }
+  #sidebar-toc-target a { text-decoration: none; color: #777; font-size: 0.9rem; transition: all 0.2s; display: block; padding: 2px 0; }
+
+  /* Sub-section indentation (This fixes your 'moved to the right' issue) */
+  #sidebar-toc-target ul ul { 
+    padding-left: 15px; 
+    border-left: 1px solid #eee;
+    margin-top: 5px;
+  }
+  #sidebar-toc-target ul ul a { font-size: 0.85rem; }
+
+  /* ScrollSpy Active State */
+  #sidebar-toc-target a.active {
+    color: #3498db;
+    font-weight: bold;
+    border-left: 2px solid #3498db;
+    padding-left: 8px;
+    margin-left: -10px;
+  }
+
+  /* Hide original TOC */
+  #markdown-toc { display: none; }
+  
+  /* Smooth scrolling for the whole page */
+  html { scroll-behavior: smooth; }
+  h1, h2, h3, h4 { scroll-margin-top: 50px; }
+</style>
+
+<div class="post-wrapper">
+  <aside class="sidebar-nav">
+    <h4 style="margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; color: #999;">Sections</h4>
+    <div id="sidebar-toc-target"></div>
+  </aside>
+
+  <article class="main-post-content">
+    <header class="post-header">
+      <h1 class="post-title">{{ page.title }}</h1>
+    </header>
+
+    <div class="entry-content">
+      {{ content }}
+    </div>
+
+    {% if page.custom_js %}
+      {% for script in page.custom_js %}
+        <script src="{{ '/assets/js/' | append: script | append: '.js' | relative_url }}"></script>
+      {% endfor %}
+    {% endif %}
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const toc = document.getElementById('markdown-toc');
+        const target = document.getElementById('sidebar-toc-target');
+        
+        // 1. Move TOC to sidebar
+        if (toc && target) {
+          target.appendChild(toc);
+          toc.style.display = 'block';
+        }
+
+        // 2. ScrollSpy Logic
+        const links = target.querySelectorAll('a');
+        const sections = Array.from(links).map(link => {
+          return document.getElementById(decodeURI(link.hash).substring(1));
+        }).filter(sec => sec !== null);
+
+        function changeActiveLink() {
+          let index = sections.length;
+          while(--index && window.scrollY + 100 < sections[index].offsetTop) {}
+          
+          links.forEach((link) => link.classList.remove('active'));
+          if (sections[index]) {
+            links[index].classList.add('active');
+          }
+        }
+
+        changeActiveLink();
+        window.addEventListener('scroll', changeActiveLink);
+      });
+    </script>
+    <script>
+        window.MathJax = {
+            tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+            },
+            svg: {
+            fontCache: 'global'
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  </article>
+</div>
