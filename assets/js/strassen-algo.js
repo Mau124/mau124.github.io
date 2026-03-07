@@ -1,35 +1,7 @@
-let matrixA, matrixB, matrixC;
-let cols = 4;
-let rows = 4;
-
-const cellSize = 50;
-
-function setup() {
-    let canvas = createCanvas(600, 600);
-    canvas.parent('canvas-container');
-    randomizeMatrices();
-    noLoop();
-}
-
 function addLog(message) {
   const logEl = document.getElementById('status-log');
-  
-  // Add new log at the top
+
   logEl.innerHTML = `<div>${message}</div>` + logEl.innerHTML;
-}
-
-function handleMatrixReset() {
-  console.log("Button handleMatrixReset pressed");
-  randomizeMatrices(); 
-}
-
-function runAlgorithm() {
-    console.log("Button handleNextStep pressed");
-    addLog("Starting algorithm");
-    console.log("Starting algorithm");
-    matrixC = strassenAlgo(matrixA, matrixB, 4);
-    addLog("Final matrix: " + matrixC);
-    redraw();
 }
 
 function strassenAlgo(matrixA, matrixB, n) {
@@ -131,63 +103,97 @@ function joinMatrices(matrixC11, matrixC12, matrixC21, matrixC22, n) {
     return result;
 }
 
-function randomizeMatrices() {
-//   matrixA = createMatrix(cols, rows);
-//   matrixB = createMatrix(cols, rows);
-    matrixA = [[2, 4, 3, 4], [2, 4, 5, 1], [6, 5, 3, 3], [3, 5, 8, 2]];
-    matrixB = [[1, 2, 7, 4], [3, 5, 6, 4], [4, 2, 6, 2], [4, 5, 3, 2]];
-    redraw();
+function isPowerOfTwo(n) {
+    return n > 0 && (n & (n - 1)) === 0;
 }
 
-function createMatrix(c, r) {
-  let arr = new Array(c);
-  for (let i = 0; i < arr.length; i++) {
-    arr[i] = new Array(r);
-    for (let j = 0; j < arr[i].length; j++) {
-      arr[i][j] = floor(random(0, 100));
+function validatePowerOfTwo(input) {
+    const maxVal = 8;
+    const minVal = 2;
+    const val = parseInt(input.value);
+    const errorSpan = document.getElementById('error-msg');
+    const calcBtn = document.querySelector('.calc-btn');
+
+    if (val > maxVal) {
+        input.classList.add('invalid-input');
+        errorSpan.innerText = `Max size is ${maxVal}`;
+        calcBtn.disabled = true;
+        return;
     }
-  }
-  return arr;
-}
 
-function draw() {
-    background(255);
-  
-    // Draw Matrix A at (50, 50)
-    drawMatrix(matrixA, 50, 50, "Matrix A");
-  
-    // Draw Matrix B at (350, 50)
-    drawMatrix(matrixB, 350, 50, "Matrix B");
-
-    // Draw Result Matrix
-    drawMatrix(matrixC, 200, 300, "Matrix C");
-}
-
-function drawMatrix(matrix, xOffset, yOffset, label) {
-  push();
-  translate(xOffset, yOffset);
-  
-  // Label
-  fill(0);
-  textAlign(CENTER);
-  text(label, (cols * cellSize) / 2, -10);
-
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      let x = i * cellSize;
-      let y = j * cellSize;
-      
-      // Cell Background
-      stroke(200);
-      fill(255);
-      rect(x, y, cellSize, cellSize);
-      
-      // The Number
-      fill(50);
-      noStroke();
-      textAlign(CENTER, CENTER);
-      text(matrix[j][i], x + cellSize/2, y + cellSize/2);
+    if(val < minVal) {
+        input.classList.add('invalid-input');
+        errorSpan.innerText = `Min size is ${minVal}`;
+        calcBtn.disabled = true;
+        return;
     }
-  }
-  pop();
+
+    if (!isPowerOfTwo(val)) {
+        input.classList.add('invalid-input');
+        errorSpan.innerText = "Value must be a power of 2 (2, 4, 8, 16...)";
+    
+        calcBtn.disabled = true;
+        calcBtn.style.opacity = "0.5";
+    } else {
+        input.classList.remove('invalid-input');
+        errorSpan.innerText = "";
+    
+        calcBtn.disabled = false;
+        calcBtn.style.opacity = "1";
+    
+        updateGrids();
+    }
 }
+
+function updateGrids() {
+    // Clean logs
+    const statusLog = document.getElementById('status-log');
+    statusLog.innerHTML = '';
+
+    const rA = document.getElementById('rowsA').value;
+  
+    document.getElementById('rowsB').value = rA;
+    document.getElementById('colsA').value = rA;
+    document.getElementById('colsB').value = rA;
+
+    renderGrid('matrix-A-container', rA, rA, 'input-A');
+    renderGrid('matrix-B-container', rA, rA, 'input-B');
+}
+
+function renderGrid(containerId, r, c, className) {
+    const container = document.getElementById(containerId);
+    container.style.gridTemplateColumns = `repeat(${c}, 1fr)`;
+    container.innerHTML = '';
+
+    for (let i = 0; i < r * c; i++) {
+        let input = document.createElement('input');
+        input.type = 'number';
+        input.className = `matrix-input ${className}`;
+        input.value = Math.floor(Math.random() * 10);
+        container.appendChild(input);
+    }
+}
+
+function calculateProduct() {
+    // Clean logs
+    const statusLog = document.getElementById('status-log');
+    statusLog.innerHTML = '';
+
+    rA = parseInt(document.getElementById('rowsA').value);
+  
+    valsA = Array.from(document.querySelectorAll('.input-A')).map(i => Number(i.value));
+    valsB = Array.from(document.querySelectorAll('.input-B')).map(i => Number(i.value));
+
+    let matA = [], matB = [];
+    for(let i=0; i<rA; i++) matA.push(valsA.slice(i*rA, (i+1)*rA));
+    for(let i=0; i<rA; i++) matB.push(valsB.slice(i*rA, (i+1)*rA));
+
+    let result = strassenAlgo(matA, matB, rA);
+
+    const resContainer = document.getElementById('matrix-res-container');
+    resContainer.style.gridTemplateColumns = `repeat(${rA}, 1fr)`;
+    resContainer.innerHTML = result.flat().map(v => `<div class="matrix-input" style="line-height:35px; border:none;">${v}</div>`).join('');
+}
+
+// Initialize on load
+updateGrids();
